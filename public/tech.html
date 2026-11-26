@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nolt Remote Support</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<main>
+  <h1>Remote Support</h1>
+  <p class="muted">Create a session, send the link to the user, and their screen appears here once they allow it.</p>
+
+  <section class="panel" id="setup">
+    <div class="row">
+      <input id="apiKey" type="password" placeholder="Technician API key" autocomplete="off">
+      <input id="techName" placeholder="Your name">
+      <button class="primary" id="newSession">New session</button>
+    </div>
+    <p id="setupError" class="status bad hidden"></p>
+  </section>
+
+  <section class="panel hidden" id="sessionPanel">
+    <div class="row" style="justify-content: space-between">
+      <div>Status: <span id="status" class="status">created</span> <span id="route" class="muted"></span></div>
+      <button class="danger" id="endBtn">End session</button>
+    </div>
+    <div id="linkBox" style="margin-top: 12px">
+      <div class="muted">Send this link to the user (valid for 10 minutes, works once):</div>
+      <div class="row" style="margin-top: 6px">
+        <span id="joinUrl" class="link" style="flex: 1"></span>
+        <button id="copyBtn">Copy</button>
+      </div>
+    </div>
+    <div id="codeBox" class="hidden" style="margin-top: 12px">
+      <div class="muted">Ask the user to confirm they see this code:</div>
+      <span id="code" class="code"></span>
+    </div>
+  </section>
+
+  <section class="panel hidden" id="viewerPanel">
+    <div class="row" style="margin-bottom: 10px">
+      <input id="urlInput" placeholder="https://… (open on the user's device)">
+      <button id="openUrlBtn">Open URL</button>
+      <input id="appInput" placeholder="App name, e.g. notepad">
+      <button id="openAppBtn">Open app</button>
+    </div>
+    <video id="screen" autoplay playsinline muted tabindex="0"></video>
+    <p class="muted" style="margin: 8px 0 0">Click the screen to control it. Keyboard input goes to the user's device while the screen has focus.</p>
+  </section>
+
+  <section class="panel">
+    <div class="muted">Event log</div>
+    <div id="log" class="log"></div>
+  </section>
+</main>
+<script src="/socket.io/socket.io.min.js"></script>
+<script src="/tech.js"></script>
+</body>
+</html>

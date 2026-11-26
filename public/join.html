@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Nolt Support</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div id="banner" class="banner hidden">
+  <span>● A Nolt technician can see your screen</span>
+  <button id="stopBtn">Stop sharing</button>
+</div>
+<main style="max-width: 560px">
+  <h1>Nolt Support</h1>
+  <p class="muted">A Nolt support technician has asked to view your screen to help you.</p>
+
+  <section class="panel" id="startPanel">
+    <p style="margin-top: 0">Nothing is shared until you click <b>Allow</b> on the next step.</p>
+    <div class="row">
+      <button class="primary" id="startBtn">Continue</button>
+    </div>
+    <p id="downloadNote" class="muted" style="margin-bottom: 0"></p>
+  </section>
+
+  <section class="panel hidden" id="consentPanel">
+    <p style="margin-top: 0">Check that the technician sees the same code:</p>
+    <span id="code" class="code"></span>
+    <p>If you click <b>Allow</b>, your browser will ask which screen or window to share. You can stop at any time.</p>
+    <div class="row">
+      <button class="primary" id="allowBtn">Allow</button>
+      <button id="denyBtn">Deny</button>
+    </div>
+  </section>
+
+  <section class="panel hidden" id="activePanel">
+    <p style="margin: 0">Status: <span id="status" class="status ok">sharing</span></p>
+    <p class="muted">Remote control needs the Nolt Support app. In the browser, the technician can only view your screen.</p>
+    <div id="inputLog" class="log"></div>
+  </section>
+
+  <section class="panel hidden" id="donePanel">
+    <p id="doneText" style="margin: 0"></p>
+  </section>
+
+  <p id="error" class="status bad hidden"></p>
+</main>
+<script src="/socket.io/socket.io.min.js"></script>
+<script src="/join.js"></script>
+</body>
+</html>
