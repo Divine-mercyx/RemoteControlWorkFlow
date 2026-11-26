@@ -18,7 +18,9 @@ input { font: inherit; padding: 8px 10px; border: 1px solid var(--border); borde
         background: var(--bg); color: var(--text); min-width: 0; flex: 1 1 200px; }
 button { font: inherit; padding: 9px 16px; border-radius: 8px; border: 1px solid var(--border);
          background: var(--panel); color: var(--text); cursor: pointer; }
-button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); font-weight: 600; }
+a.button { display: inline-block; text-decoration: none; font: inherit; padding: 9px 16px; border-radius: 8px;
+           border: 1px solid var(--border); background: var(--panel); color: var(--text); }
+a.button.primary, button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); font-weight: 600; }
 button.danger { background: var(--danger); border-color: var(--danger); color: #fff; font-weight: 600; }
 button:disabled { opacity: .5; cursor: not-allowed; }
 .code { font: 700 34px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .12em;
@@ -35,3 +37,4 @@ button:disabled { opacity: .5; cursor: not-allowed; }
           padding: 10px 16px; display: flex; gap: 12px; align-items: center; justify-content: space-between; }
 .banner button { background: #fff; color: var(--danger); border: 0; font-weight: 700; }
 .log { font: 12px/1.5 ui-monospace, monospace; max-height: 160px; overflow: auto; color: var(--muted); }
+hr { border: 0; border-top: 1px solid var(--border); margin: 16px 0; }

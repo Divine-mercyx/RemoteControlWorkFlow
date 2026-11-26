@@ -17,7 +17,16 @@
   <p class="muted">A Nolt support technician has asked to view your screen to help you.</p>
 
   <section class="panel" id="startPanel">
-    <p style="margin-top: 0">Nothing is shared until you click <b>Allow</b> on the next step.</p>
+    <div id="appOption" class="hidden">
+      <p style="margin-top: 0"><b>Recommended:</b> get the Nolt Support app so the technician can also use your mouse and keyboard to fix things for you.</p>
+      <div class="row">
+        <a class="button primary" id="downloadBtn">Download Nolt Support</a>
+        <a class="button" id="openAppBtn">I already have the app</a>
+      </div>
+      <p class="muted">Open the downloaded file. It shows a 6-digit code, and nothing is shared until you click <b>Allow</b> in the app.</p>
+      <hr>
+    </div>
+    <p id="browserIntro" style="margin-top: 0">Nothing is shared until you click <b>Allow</b> on the next step.</p>
     <div class="row">
       <button class="primary" id="startBtn">Continue</button>
     </div>

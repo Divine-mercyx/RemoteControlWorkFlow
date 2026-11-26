@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nolt Support</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header id="banner" class="banner hidden">
+  <span><span class="dot"></span> Sharing your screen</span>
+  <button id="stopBtn">Stop</button>
+</header>
+<main>
+  <h1>Nolt Support</h1>
+
+  <!-- No session yet -->
+  <section id="idlePanel" class="panel hidden">
+    <p>Open the support link the technician sent you, or paste it here:</p>
+    <input id="linkInput" placeholder="https://…/join/…" autocomplete="off" spellcheck="false">
+    <button class="primary" id="linkBtn">Connect</button>
+  </section>
+
+  <!-- Connecting -->
+  <section id="loadingPanel" class="panel">
+    <p class="muted">Connecting…</p>
+  </section>
+
+  <!-- Ask for consent -->
+  <section id="consentPanel" class="panel hidden">
+    <p><b id="techName">A Nolt technician</b> wants to see and control your screen to help you.</p>
+    <p class="muted">Check that the technician sees the same code:</p>
+    <div id="code" class="code"></div>
+    <p class="muted">When you click Allow, choose <b>Entire screen</b> so the technician can also use your mouse and keyboard. You can stop at any time.</p>
+    <div class="row">
+      <button class="primary" id="allowBtn">Allow</button>
+      <button id="denyBtn">Deny</button>
+    </div>
+  </section>
+
+  <!-- Sharing -->
+  <section id="activePanel" class="panel hidden">
+    <p>Status: <span id="status" class="status ok">connecting</span></p>
+    <p id="controlNote" class="muted"></p>
+    <div class="muted small">What the technician did:</div>
+    <div id="activity" class="log"></div>
+  </section>
+
+  <!-- Finished -->
+  <section id="donePanel" class="panel hidden">
+    <p id="doneText"></p>
+    <button id="againBtn">Start another session</button>
+  </section>
+
+  <p id="error" class="error hidden"></p>
+  <p class="muted small" id="footer"></p>
+</main>
+<script src="socket.io.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

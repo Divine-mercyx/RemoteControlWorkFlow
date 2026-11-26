@@ -19,6 +19,8 @@
   let control = null;
   let session = null;
   let iceServers = [];
+  const route = { path: '', control: '' };
+  const renderRoute = () => ($('route').textContent = [route.path, route.control].filter(Boolean).map((t) => `· ${t}`).join(' '));
 
   function setStatus(state, cls = '') {
     $('status').textContent = state;
@@ -106,7 +108,15 @@
         if (e.channel.label !== 'control') return;
         control = e.channel;
         control.onopen = () => log('control channel open');
-        control.onmessage = (m) => log(`agent: ${m.data}`);
+        control.onmessage = (m) => {
+          let msg;
+          try { msg = JSON.parse(m.data); } catch { return; }
+          if (msg.t === 'hello') {
+            log(`user is on ${msg.agent} (${msg.platform || 'browser'}): ${msg.control ? 'remote control enabled' : 'view only'}`);
+            route.control = msg.control ? 'control on' : 'view only';
+            renderRoute();
+          }
+        };
       };
       pc.onconnectionstatechange = () => {
         log(`peer connection: ${pc.connectionState}`);
@@ -128,7 +138,8 @@
       let pair;
       stats.forEach((r) => { if (r.type === 'transport' && r.selectedCandidatePairId) pair = stats.get(r.selectedCandidatePairId); });
       const local = pair && stats.get(pair.localCandidateId);
-      $('route').textContent = local ? (local.candidateType === 'relay' ? '· via TURN relay' : '· direct') : '';
+      route.path = local ? (local.candidateType === 'relay' ? 'via TURN relay' : 'direct') : '';
+      renderRoute();
     } catch { /* stats are optional */ }
   }
 
@@ -136,6 +147,8 @@
     if (pc) pc.close();
     pc = null;
     control = null;
+    route.path = route.control = '';
+    renderRoute();
     $('screen').srcObject = null;
   }
 
