@@ -107,4 +107,4 @@ jobs:
           if-no-files-found: error
       - name: No enrollment key configured
         if: ${{ env.NOLT_ENROLLMENT_KEY == '' }}
-        run: echo "Skipped: set the NOLT_ENROLLMENT_KEY secret to build the managed agent."
+        run: 'echo "Skipped - set the NOLT_ENROLLMENT_KEY secret to build the managed agent."'
