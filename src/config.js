@@ -16,10 +16,14 @@ export function loadConfig(env = process.env) {
     linkTtlMs: num(env.LINK_TTL_SECONDS, 600) * 1000,
     // Hard cap on a session's total lifetime.
     sessionMaxMs: num(env.SESSION_MAX_SECONDS, 7200) * 1000,
-    // STUN/TURN. TURN uses coturn's "use-auth-secret" (time-limited credentials).
+    // STUN/TURN. Either coturn's "use-auth-secret" (TURN_SECRET, time-limited credentials)
+    // or a hosted service's fixed TURN_USERNAME + TURN_CREDENTIAL.
     stunUrls: (env.STUN_URLS || 'stun:stun.l.google.com:19302').split(',').filter(Boolean),
     turnUrls: (env.TURN_URLS || '').split(',').filter(Boolean),
     turnSecret: env.TURN_SECRET || '',
+    // Alternative for hosted relay services (Metered, Twilio, ...): a fixed username and password.
+    turnUsername: env.TURN_USERNAME || '',
+    turnCredential: env.TURN_CREDENTIAL || '',
     turnTtlSeconds: num(env.TURN_TTL_SECONDS, 3600),
     // Comma-separated allowed origins for the Socket.IO / API (the admin frontend).
     // Allowed browser origins: the admin frontend (CORS_ORIGINS) plus the desktop app.

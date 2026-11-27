@@ -35,7 +35,7 @@ Open `tech.html`, enter the API key and click **New session**. Then open the joi
 
 ## Configuration
 
-See `.env.example`. In production, `TECH_API_KEY` is required. Set `AGENT_WINDOWS_EXE` to the built `NoltSupport.exe` to offer the Windows app on the join page. The desktop app's origins (`http://tauri.localhost`, `tauri://localhost`) are always allowed for CORS.
+See `.env.example`. In production, `TECH_API_KEY` is required. Set `AGENT_WINDOWS_EXE` to the built `NoltSupport.exe` to offer the Windows app on the join page. TURN relay (needed when the two devices are on different networks): set `TURN_URLS` plus either `TURN_SECRET` (your own coturn) or `TURN_USERNAME` and `TURN_CREDENTIAL` (a hosted relay service). The desktop app's origins (`http://tauri.localhost`, `tauri://localhost`) are always allowed for CORS.
 
 ## HTTP API
 
