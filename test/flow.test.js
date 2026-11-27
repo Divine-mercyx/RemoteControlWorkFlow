@@ -136,14 +136,14 @@ test('windows agent download is named after the link and does not use it up', as
   const { joinUrl } = await createSession();
   const token = joinUrl.split('/').pop();
 
-  assert.deepEqual(await (await fetch(`${base}/api/agents`)).json(), { windows: false });
+  assert.deepEqual(await (await fetch(`${base}/api/agents`)).json(), { windows: false, managedWindows: false });
   assert.equal((await fetch(`${base}/download/windows/${token}`)).status, 404);
 
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'nolt-agent-'));
   config.agentWindowsExe = path.join(dir, 'NoltSupport.exe');
   fs.writeFileSync(config.agentWindowsExe, 'MZ fake exe');
   try {
-    assert.deepEqual(await (await fetch(`${base}/api/agents`)).json(), { windows: true });
+    assert.deepEqual(await (await fetch(`${base}/api/agents`)).json(), { windows: true, managedWindows: false });
     const dl = await fetch(`${base}/download/windows/${token}`);
     assert.equal(dl.status, 200);
     assert.match(dl.headers.get('content-disposition'), new RegExp(`filename="NoltSupport-${token}\\.exe"`));
@@ -157,6 +157,29 @@ test('windows agent download is named after the link and does not use it up', as
     assert.equal((await fetch(`${base}/download/windows/not-a-token`)).status, 404);
   } finally {
     config.agentWindowsExe = '';
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('managed installer download is served with the product name', async () => {
+  assert.equal((await fetch(`${base}/download/managed/windows`)).status, 404);
+  let agents = await (await fetch(`${base}/api/agents`)).json();
+  assert.equal(agents.managedWindows, false);
+
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'nolt-managed-'));
+  config.agentWindowsManagedExe = path.join(dir, 'setup.exe');
+  config.managedProductName = 'FinanceSupport';
+  fs.writeFileSync(config.agentWindowsManagedExe, 'MZ managed installer');
+  try {
+    agents = await (await fetch(`${base}/api/agents`)).json();
+    assert.equal(agents.managedWindows, true);
+    const dl = await fetch(`${base}/download/managed/windows`);
+    assert.equal(dl.status, 200);
+    assert.match(dl.headers.get('content-disposition'), /filename="FinanceSupportSetup\.exe"/);
+    assert.equal(await dl.text(), 'MZ managed installer');
+    assert.ok(events.some((e) => e.e === 'managed_agent.downloaded'));
+  } finally {
+    config.agentWindowsManagedExe = '';
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });

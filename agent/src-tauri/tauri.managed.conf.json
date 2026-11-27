@@ -1,0 +1,27 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Finance Support",
+  "mainBinaryName": "FinanceSupport",
+  "identifier": "app.nolt.financesupport",
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Finance Support",
+        "width": 420,
+        "height": 600,
+        "resizable": false,
+        "maximizable": false,
+        "center": true,
+        "visible": false
+      }
+    ]
+  },
+  "bundle": {
+    "publisher": "Nolt",
+    "shortDescription": "Finance Support remote assistance",
+    "windows": {
+      "nsis": { "installMode": "perMachine" }
+    }
+  }
+}

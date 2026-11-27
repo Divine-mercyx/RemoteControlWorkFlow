@@ -69,6 +69,42 @@ cd agent && cargo test -p nolt-agent-core
 3. Click **Download Nolt Support**, run it, and click **Allow** → **Entire screen**.
 4. Check: clicks land in the right place (also on a second monitor), typing and Ctrl+C / Ctrl+V work, scrolling works, **Open URL** and **Open app** work, and **Stop** releases everything.
 
+## Managed (unattended) mode — for company-owned devices
+
+The same agent has a second mode for a fleet of company laptops that IT manages.
+When a **company enrollment key** is baked in at build time (`NOLT_ENROLLMENT_KEY`),
+the agent:
+
+1. **Enrolls itself** once with the server (`POST /api/devices/enroll`) and stores
+   a long-lived device token under its app config dir (`device.token`).
+2. Keeps a **presence connection** so it shows up online in the technician's device list.
+3. On a technician connecting, **captures the screen and connects with no click** —
+   consent came from IT deploying the agent, established at enrollment, not per session.
+   A red "IT support is connected to this device" bar shows whenever a session is active.
+
+The managed build also:
+- is branded **Finance Support** (set by `NOLT_PRODUCT_NAME` / the `tauri.managed.conf.json` overlay),
+- **installs per-machine and starts at login** (NSIS `perMachine` + the autostart plugin),
+- runs **hidden in the system tray** when idle — only a tray icon, no window —
+  and shows the window with a "Finance Support is connected to this device" bar
+  while a session is active (the visible active-session indicator),
+- is distributed as a **download link** (`/download/managed/windows`, served when
+  `AGENT_WINDOWS_MANAGED_EXE` is set): staff run it once, it self-enrolls, and IT
+  connects unattended afterwards. Installing it is a normal visible install — the
+  agent is identifiable as a remote-support tool and keeps a visible indicator;
+  it is not hidden from the person, which is what keeps this lawful.
+
+Build it via the **`build-managed`** CI job: set the `NOLT_ENROLLMENT_KEY` **secret**
+(and `NOLT_SERVER_URL` variable), then run the workflow. It produces
+`NoltSupportManaged.exe`, deployed to the fleet by GPO/Intune/RMM.
+
+**Two things to verify on real Windows (they can't be tested off-Windows):**
+- The picker-bypass flag (`--auto-select-desktop-capture-source="Entire screen"`) matches
+  the screen by its **localized label**, so it may not match on non-English Windows.
+- Capture may still require a user gesture even unattended. If Windows refuses capture
+  with no click, that forces the native-capture build (Phase 3b-2), which also covers the
+  **lock screen / logged-out** case this WebView2 path cannot.
+
 ## Known limits
 
 - **The app isn't code-signed yet.** SmartScreen will show "Windows protected your PC", and the user has to click **More info → Run anyway**. Signing comes in Phase 3.
