@@ -19,6 +19,7 @@ Technician (tech.html)          This service                  User (join link / 
 | Phase | What | State |
 |---|---|---|
 | 1 | Session API, signaling, technician viewer, browser agent (view only) | **Done** |
+| 3a | Server backbone for unattended access to enrolled company devices (enroll, device registry, presence, auto-approve) | **Done** |
 | 2 | Windows app (Tauri): remote control, `noltsupport://` links, per-session download. See [`agent/`](agent/README.md) | **Built; needs testing on a real PC** |
 | 3 | Production: coturn, Redis store, JWT from the admin backend, signed installers, audit in the admin panel | |
 | 4 | Android agent; iOS view-only | |
@@ -46,6 +47,11 @@ See `.env.example`. In production, `TECH_API_KEY` is required. Set `AGENT_WINDOW
 | POST | `/api/sessions/:id/end` | tech key | End a session |
 | POST | `/api/claim` | none (rate limited: 20 per 10 min per IP) | Body `{ token, agentInfo }`. Returns `{ sessionId, agentToken, code, technician }` |
 | GET | `/api/agents` | none | Which native apps are available, e.g. `{ windows: true }` |
+| POST | `/api/devices/enroll` | company enrollment key | A company device enrolls itself. Body `{ enrollmentKey, name, platform, version, hostname }`. Returns `{ device, deviceToken }` |
+| GET | `/api/devices` | tech key | List enrolled devices with online status |
+| PATCH | `/api/devices/:id` | tech key | Rename a device |
+| DELETE | `/api/devices/:id` | tech key | Unenroll a device (revokes its token) |
+| POST | `/api/devices/:id/connect` | tech key | Start an unattended session to a device. If online, it is told to connect with no click |
 | GET | `/download/windows/:token` | none (rate limited) | The Windows app, named `NoltSupport-<token>.exe`. Doesn't use up the link |
 | GET | `/join/:token` | none | Landing page. Opening it does **not** use up the token, so link previews in WhatsApp or SMS can't burn it |
 | GET | `/healthz` | none | Health check |

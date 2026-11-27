@@ -32,11 +32,18 @@ export function loadConfig(env = process.env) {
     // Path to the built Windows agent (NoltSupport.exe). Served per session as
     // NoltSupport-<token>.exe so the app knows which session to join.
     agentWindowsExe: env.AGENT_WINDOWS_EXE || '',
+    // Shared secret baked into the company installer. A device presents it once
+    // to enroll itself for unattended access. Empty = unattended access is off.
+    companyEnrollmentKey: env.COMPANY_ENROLLMENT_KEY || '',
   };
   if (!config.techApiKey) {
     if (env.NODE_ENV === 'production') throw new Error('TECH_API_KEY is required in production');
     config.techApiKey = 'dev-tech-key';
     console.warn('[config] TECH_API_KEY not set; using "dev-tech-key" (development only)');
+  }
+  if (!config.companyEnrollmentKey && env.NODE_ENV !== 'production') {
+    config.companyEnrollmentKey = 'dev-enroll-key';
+    console.warn('[config] COMPANY_ENROLLMENT_KEY not set; using "dev-enroll-key" (development only)');
   }
   return config;
 }
