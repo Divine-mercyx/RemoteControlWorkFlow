@@ -66,6 +66,13 @@ export class SessionStore {
     return s || null;
   }
 
+  /** Look up an unused, unexpired link without using it up. */
+  peek(joinToken) {
+    const id = this.byJoinHash.get(sha(String(joinToken || '')));
+    const s = id && this.get(id);
+    return s && s.state === STATES.CREATED ? s : null;
+  }
+
   /** Agent exchanges the one-time join token for an agent token + code. */
   claim(joinToken, agentInfo = {}) {
     const id = this.byJoinHash.get(sha(String(joinToken || '')));

@@ -19,7 +19,7 @@ Technician (tech.html)          This service                  User (join link / 
 | Phase | What | State |
 |---|---|---|
 | 1 | Session API, signaling, technician viewer, browser agent (view only) | **Done** |
-| 2 | Native Windows agent (Tauri): capture and input injection, `noltsupport://` links | Next |
+| 2 | Windows app (Tauri): remote control, `noltsupport://` links, per-session download. See [`agent/`](agent/README.md) | **Built; needs testing on a real PC** |
 | 3 | Production: coturn, Redis store, JWT from the admin backend, signed installers, audit in the admin panel | |
 | 4 | Android agent; iOS view-only | |
 
@@ -35,7 +35,7 @@ Open `tech.html`, enter the API key and click **New session**. Then open the joi
 
 ## Configuration
 
-See `.env.example`. In production, `TECH_API_KEY` is required.
+See `.env.example`. In production, `TECH_API_KEY` is required. Set `AGENT_WINDOWS_EXE` to the built `NoltSupport.exe` to offer the Windows app on the join page. The desktop app's origins (`http://tauri.localhost`, `tauri://localhost`) are always allowed for CORS.
 
 ## HTTP API
 
@@ -44,7 +44,9 @@ See `.env.example`. In production, `TECH_API_KEY` is required.
 | POST | `/api/sessions` | `Authorization: Bearer <TECH_API_KEY>` | Create a session. Returns `session`, `joinUrl`, `techToken` |
 | GET | `/api/sessions/:id` | tech key | Session status |
 | POST | `/api/sessions/:id/end` | tech key | End a session |
-| POST | `/api/claim` | none (rate limited: 20 per 10 min per IP) | Body `{ token, agentInfo }`. Returns `{ sessionId, agentToken, code }` |
+| POST | `/api/claim` | none (rate limited: 20 per 10 min per IP) | Body `{ token, agentInfo }`. Returns `{ sessionId, agentToken, code, technician }` |
+| GET | `/api/agents` | none | Which native apps are available, e.g. `{ windows: true }` |
+| GET | `/download/windows/:token` | none (rate limited) | The Windows app, named `NoltSupport-<token>.exe`. Doesn't use up the link |
 | GET | `/join/:token` | none | Landing page. Opening it does **not** use up the token, so link previews in WhatsApp or SMS can't burn it |
 | GET | `/healthz` | none | Health check |
 
@@ -76,7 +78,7 @@ This protocol is what the Phase 2 native agent implements. JSON messages, coordi
 { "t": "cmd",   "name": "open_url", "url": "https://…" }
 { "t": "cmd",   "name": "open_app", "app": "notepad" }
 // agent → technician
-{ "t": "hello", "agent": "browser" | "windows", "control": false | true }
+{ "t": "hello", "agent": "browser" | "nolt-support", "platform": "windows", "control": false | true }
 ```
 
 ## Safeguards built in

@@ -1,15 +1,18 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { io as connect } from 'socket.io-client';
 import { loadConfig } from '../src/config.js';
 import { createServer } from '../src/server.js';
 
-let server, base, events;
+let server, base, events, config;
 const KEY = 'test-key';
 
 before(async () => {
   events = [];
-  const config = loadConfig({ TECH_API_KEY: KEY, PORT: '0' });
+  config = loadConfig({ TECH_API_KEY: KEY, PORT: '0' });
   server = createServer(config, { audit: (e, d) => events.push({ e, ...d }) });
   const { port } = await server.listen(0);
   base = `http://127.0.0.1:${port}`;
@@ -121,4 +124,39 @@ test('a claimed link cannot be claimed again', async () => {
   const token = joinUrl.split('/').pop();
   assert.equal((await api('/api/claim', { body: { token } })).status, 200);
   assert.equal((await api('/api/claim', { body: { token } })).status, 404);
+});
+
+test('claim tells the agent who the technician is', async () => {
+  const { joinUrl } = await createSession();
+  const claim = await (await api('/api/claim', { body: { token: joinUrl.split('/').pop() } })).json();
+  assert.equal(claim.technician, 'ada');
+});
+
+test('windows agent download is named after the link and does not use it up', async () => {
+  const { joinUrl } = await createSession();
+  const token = joinUrl.split('/').pop();
+
+  assert.deepEqual(await (await fetch(`${base}/api/agents`)).json(), { windows: false });
+  assert.equal((await fetch(`${base}/download/windows/${token}`)).status, 404);
+
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'nolt-agent-'));
+  config.agentWindowsExe = path.join(dir, 'NoltSupport.exe');
+  fs.writeFileSync(config.agentWindowsExe, 'MZ fake exe');
+  try {
+    assert.deepEqual(await (await fetch(`${base}/api/agents`)).json(), { windows: true });
+    const dl = await fetch(`${base}/download/windows/${token}`);
+    assert.equal(dl.status, 200);
+    assert.match(dl.headers.get('content-disposition'), new RegExp(`filename="NoltSupport-${token}\\.exe"`));
+    assert.equal(await dl.text(), 'MZ fake exe');
+    assert.ok(events.some((e) => e.e === 'agent.downloaded'));
+
+    // The app can still claim the session after the download...
+    assert.equal((await api('/api/claim', { body: { token } })).status, 200);
+    // ...after which the link no longer downloads.
+    assert.equal((await fetch(`${base}/download/windows/${token}`)).status, 410);
+    assert.equal((await fetch(`${base}/download/windows/not-a-token`)).status, 404);
+  } finally {
+    config.agentWindowsExe = '';
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
 });

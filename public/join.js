@@ -26,9 +26,18 @@
       ? 'Screen sharing from a phone browser is not supported yet. Please open this link on a computer.'
       : 'This browser cannot share the screen. Please use Chrome, Edge or Firefox.';
     $('startBtn').disabled = true;
-  } else {
-    $('downloadNote').textContent = 'The Nolt Support app for full remote control is coming soon.';
   }
+
+  // Offer the native app where one is available for this OS.
+  fetch('/api/agents').then((r) => r.json()).then((agents) => {
+    if (platform !== 'windows' || !agents.windows || saved) return;
+    $('downloadBtn').href = `/download/windows/${encodeURIComponent(joinToken)}`;
+    $('openAppBtn').href = `noltsupport://join?token=${encodeURIComponent(joinToken)}`;
+    $('appOption').classList.remove('hidden');
+    $('browserIntro').textContent = 'Or, without installing anything, share your screen from this browser. The technician can then only view it.';
+    $('startBtn').textContent = 'Share in browser (view only)';
+    $('startBtn').classList.remove('primary');
+  }).catch(() => {});
 
   let socket = null;
   let pc = null;

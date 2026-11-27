@@ -1,0 +1,37 @@
+:root {
+  --bg: #f6f7f9; --panel: #fff; --text: #14171f; --muted: #5d6475; --border: #dfe3ea;
+  --accent: #1f5eff; --accent-text: #fff; --danger: #d92d20; --ok: #12805c; --code-bg: #eef2ff;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #0f1115; --panel: #171a21; --text: #e8eaf0; --muted: #9aa1b2; --border: #2a2f3a;
+          --accent: #5b8cff; --accent-text: #0b0d12; --danger: #ff6b5e; --ok: #3ccf91; --code-bg: #1d2333; }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { font: 14px/1.5 "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--text); user-select: none; }
+main { padding: 20px 18px; }
+h1 { font-size: 20px; margin: 0 0 12px; }
+p { margin: 0 0 12px; }
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+.row { display: flex; gap: 8px; }
+input { width: 100%; font: inherit; padding: 8px 10px; margin-bottom: 10px; border: 1px solid var(--border);
+        border-radius: 8px; background: var(--bg); color: var(--text); user-select: text; }
+button { font: inherit; padding: 9px 16px; border-radius: 8px; border: 1px solid var(--border);
+         background: var(--panel); color: var(--text); cursor: pointer; }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); font-weight: 600; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+.code { font: 700 32px/1.2 Consolas, ui-monospace, monospace; letter-spacing: .12em; text-align: center;
+        background: var(--code-bg); padding: 10px; border-radius: 10px; margin-bottom: 12px; }
+.status { padding: 1px 10px; border-radius: 99px; font-size: 12px; border: 1px solid var(--border); }
+.status.ok { color: var(--ok); border-color: var(--ok); }
+.banner { background: var(--danger); color: #fff; padding: 10px 18px; display: flex;
+          align-items: center; justify-content: space-between; font-weight: 600; }
+.banner button { background: #fff; color: var(--danger); border: 0; font-weight: 700; }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #fff;
+       margin-right: 6px; animation: pulse 1.4s infinite; }
+@keyframes pulse { 50% { opacity: .3; } }
+.log { font: 12px/1.6 Consolas, ui-monospace, monospace; max-height: 170px; overflow: auto; margin-top: 4px; }
+.error { color: var(--danger); }
+.hidden { display: none !important; }
