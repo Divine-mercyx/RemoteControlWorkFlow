@@ -20,6 +20,8 @@ Technician (tech.html)          This service                  User (join link / 
 |---|---|---|
 | 1 | Session API, signaling, technician viewer, browser agent (view only) | **Done** |
 | 3a | Server backbone for unattended access to enrolled company devices (enroll, device registry, presence, auto-approve) | **Done** |
+| 3b-1 | Managed agent: self-enrolls, connects with no click, auto-captures the screen (logged-in user). See [`agent/`](agent/README.md) | **Built; needs testing on real Windows** |
+| 3b-2 | Windows service + native capture for the lock screen / logged-out case | Next |
 | 2 | Windows app (Tauri): remote control, `noltsupport://` links, per-session download. See [`agent/`](agent/README.md) | **Built; needs testing on a real PC** |
 | 3 | Production: coturn, Redis store, JWT from the admin backend, signed installers, audit in the admin panel | |
 | 4 | Android agent; iOS view-only | |

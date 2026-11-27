@@ -63,3 +63,48 @@ jobs:
           name: nolt-support-windows
           path: dist/
           if-no-files-found: error
+
+  build-managed:
+    name: Build managed (unattended) agent
+    needs: core-tests
+    runs-on: windows-latest
+    env:
+      # The managed build is produced only when this secret is set:
+      # Settings > Secrets and variables > Actions > Secrets > NOLT_ENROLLMENT_KEY
+      NOLT_ENROLLMENT_KEY: ${{ secrets.NOLT_ENROLLMENT_KEY }}
+      NOLT_SERVER_URL: ${{ inputs.server_url || vars.NOLT_SERVER_URL || 'http://localhost:8080' }}
+    steps:
+      - uses: actions/checkout@v4
+        if: ${{ env.NOLT_ENROLLMENT_KEY != '' }}
+      - uses: actions/setup-node@v4
+        if: ${{ env.NOLT_ENROLLMENT_KEY != '' }}
+        with:
+          node-version: 22
+      - uses: Swatinem/rust-cache@v2
+        if: ${{ env.NOLT_ENROLLMENT_KEY != '' }}
+        with:
+          workspaces: agent
+      # Same code as the attended app; the baked-in enrollment key turns on
+      # unattended mode (self-enroll + connect with no click) at runtime.
+      - name: Build managed app and installer
+        if: ${{ env.NOLT_ENROLLMENT_KEY != '' }}
+        working-directory: agent/src-tauri
+        run: npx --yes @tauri-apps/cli@2.12.6 build
+      - name: Collect artifacts
+        if: ${{ env.NOLT_ENROLLMENT_KEY != '' }}
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist-managed | Out-Null
+          Copy-Item agent/target/release/nolt-support.exe dist-managed/NoltSupportManaged.exe
+          Copy-Item agent/target/release/bundle/nsis/*.exe dist-managed/
+          Get-ChildItem dist-managed | Format-Table Name, Length
+          "Managed build for server: $env:NOLT_SERVER_URL" | Out-File dist-managed/SERVER_URL.txt
+      - uses: actions/upload-artifact@v4
+        if: ${{ env.NOLT_ENROLLMENT_KEY != '' }}
+        with:
+          name: nolt-support-managed-windows
+          path: dist-managed/
+          if-no-files-found: error
+      - name: No enrollment key configured
+        if: ${{ env.NOLT_ENROLLMENT_KEY == '' }}
+        run: echo "Skipped: set the NOLT_ENROLLMENT_KEY secret to build the managed agent."

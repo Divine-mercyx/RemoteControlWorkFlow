@@ -22,6 +22,32 @@ const SERVER_URL: &str = match option_env!("NOLT_SERVER_URL") {
     None => "http://localhost:8080",
 };
 
+/// When a company enrollment key is baked in at build time, this is an
+/// unattended (managed-device) build: it enrolls itself and lets IT connect
+/// without a per-session click. Without it, this is the normal attended app.
+const ENROLLMENT_KEY: Option<&str> = option_env!("NOLT_ENROLLMENT_KEY");
+
+fn is_unattended() -> bool {
+    ENROLLMENT_KEY.is_some()
+}
+
+fn hostname() -> String {
+    std::env::var("COMPUTERNAME")
+        .or_else(|_| std::env::var("HOSTNAME"))
+        .unwrap_or_else(|_| "unknown".into())
+}
+
+/// File that holds this device's long-lived token once enrolled.
+fn device_token_path(app: &AppHandle) -> Option<std::path::PathBuf> {
+    app.path().app_config_dir().ok().map(|d| d.join("device.token"))
+}
+
+fn read_device_token(app: &AppHandle) -> Option<String> {
+    let p = device_token_path(app)?;
+    let t = std::fs::read_to_string(p).ok()?.trim().to_string();
+    (!t.is_empty()).then_some(t)
+}
+
 /// Work for the input thread, which owns the (not thread-safe) input backend.
 enum InputJob {
     Start(Screen, Sender<Result<(), String>>),
@@ -108,6 +134,48 @@ fn launch_info(state: State<AgentState>) -> LaunchInfo {
 #[tauri::command]
 fn token_from_link(link: String) -> Option<String> {
     launch::token_from_join_url(&link)
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct UnattendedInfo {
+    mode: &'static str,
+    server_url: &'static str,
+    version: &'static str,
+    platform: &'static str,
+    enrollment_key: Option<&'static str>,
+    device_token: Option<String>,
+    hostname: String,
+}
+
+/// Tells the UI whether this is a managed (unattended) build, and gives it what
+/// it needs to enroll and keep a presence connection.
+#[tauri::command]
+fn unattended_info(app: AppHandle) -> UnattendedInfo {
+    let unattended = is_unattended();
+    UnattendedInfo {
+        mode: if unattended { "unattended" } else { "attended" },
+        server_url: SERVER_URL,
+        version: env!("CARGO_PKG_VERSION"),
+        platform: std::env::consts::OS,
+        enrollment_key: if unattended { ENROLLMENT_KEY } else { None },
+        device_token: if unattended { read_device_token(&app) } else { None },
+        hostname: hostname(),
+    }
+}
+
+/// Persist (or clear, with an empty string) this device's enrollment token.
+#[tauri::command]
+fn save_device_token(app: AppHandle, token: String) -> Result<(), String> {
+    let path = device_token_path(&app).ok_or("no config directory")?;
+    if token.trim().is_empty() {
+        let _ = std::fs::remove_file(&path);
+        return Ok(());
+    }
+    if let Some(dir) = path.parent() {
+        std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
+    }
+    std::fs::write(&path, token.trim()).map_err(|e| e.to_string())
 }
 
 #[derive(Serialize)]
@@ -210,6 +278,14 @@ fn set_sharing(window: WebviewWindow, sharing: bool) -> Result<(), String> {
 }
 
 fn main() {
+    // Unattended builds auto-select the whole screen so capture needs no picker.
+    // The source is matched by its (localized) label; verify on non-English Windows.
+    if is_unattended() {
+        std::env::set_var(
+            "WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS",
+            "--auto-select-desktop-capture-source=\"Entire screen\" --enable-usermedia-screen-capturing",
+        );
+    }
     tauri::Builder::default()
         // Must be first: a second launch (e.g. clicking another link) is forwarded here.
         .plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
@@ -254,6 +330,8 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             launch_info,
+            unattended_info,
+            save_device_token,
             token_from_link,
             start_control,
             inject,
