@@ -82,6 +82,18 @@ the agent:
    consent came from IT deploying the agent, established at enrollment, not per session.
    A red "IT support is connected to this device" bar shows whenever a session is active.
 
+The managed build also:
+- is branded **Finance Support** (set by `NOLT_PRODUCT_NAME` / the `tauri.managed.conf.json` overlay),
+- **installs per-machine and starts at login** (NSIS `perMachine` + the autostart plugin),
+- runs **hidden in the system tray** when idle — only a tray icon, no window —
+  and shows the window with a "Finance Support is connected to this device" bar
+  while a session is active (the visible active-session indicator),
+- is distributed as a **download link** (`/download/managed/windows`, served when
+  `AGENT_WINDOWS_MANAGED_EXE` is set): staff run it once, it self-enrolls, and IT
+  connects unattended afterwards. Installing it is a normal visible install — the
+  agent is identifiable as a remote-support tool and keeps a visible indicator;
+  it is not hidden from the person, which is what keeps this lawful.
+
 Build it via the **`build-managed`** CI job: set the `NOLT_ENROLLMENT_KEY` **secret**
 (and `NOLT_SERVER_URL` variable), then run the workflow. It produces
 `NoltSupportManaged.exe`, deployed to the fleet by GPO/Intune/RMM.

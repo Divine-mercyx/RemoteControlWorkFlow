@@ -80,7 +80,10 @@ export function apiRouter({ config, store, deviceStore, hub, audit }) {
 
   // Which native agents this server can hand out (the join page uses this).
   r.get('/agents', (_req, res) => {
-    res.json({ windows: agentAvailable(config.agentWindowsExe) });
+    res.json({
+      windows: agentAvailable(config.agentWindowsExe),
+      managedWindows: agentAvailable(config.agentWindowsManagedExe),
+    });
   });
 
   // ---- Unattended access: enrolled company devices ----
@@ -158,5 +161,16 @@ export function downloadRouter({ config, store, audit }) {
     res.set('Cache-Control', 'no-store');
     res.download(config.agentWindowsExe, `NoltSupport-${token}.exe`);
   });
+
+  // The managed (unattended) installer for company devices. Staff run it once;
+  // it then self-enrolls and connects unattended. No per-session token.
+  r.get('/managed/windows', (req, res) => {
+    if (!agentAvailable(config.agentWindowsManagedExe)) return res.status(404).send('The managed app is not available yet');
+    const name = String(config.managedProductName || 'ManagedAgent').replace(/[^A-Za-z0-9._-]/g, '');
+    audit('managed_agent.downloaded', { ip: req.ip });
+    res.set('Cache-Control', 'no-store');
+    res.download(config.agentWindowsManagedExe, `${name}Setup.exe`);
+  });
+
   return r;
 }

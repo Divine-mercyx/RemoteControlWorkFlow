@@ -73,6 +73,7 @@ jobs:
       # Settings > Secrets and variables > Actions > Secrets > NOLT_ENROLLMENT_KEY
       NOLT_ENROLLMENT_KEY: ${{ secrets.NOLT_ENROLLMENT_KEY }}
       NOLT_SERVER_URL: ${{ inputs.server_url || vars.NOLT_SERVER_URL || 'http://localhost:8080' }}
+      NOLT_PRODUCT_NAME: ${{ vars.MANAGED_PRODUCT_NAME || 'Finance Support' }}
     steps:
       - uses: actions/checkout@v4
         if: ${{ env.NOLT_ENROLLMENT_KEY != '' }}
@@ -89,16 +90,20 @@ jobs:
       - name: Build managed app and installer
         if: ${{ env.NOLT_ENROLLMENT_KEY != '' }}
         working-directory: agent/src-tauri
-        run: npx --yes @tauri-apps/cli@2.12.6 build
+        run: npx --yes @tauri-apps/cli@2.12.6 build --config tauri.managed.conf.json
       - name: Collect artifacts
         if: ${{ env.NOLT_ENROLLMENT_KEY != '' }}
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force dist-managed | Out-Null
-          Copy-Item agent/target/release/nolt-support.exe dist-managed/NoltSupportManaged.exe
+          # The per-machine NSIS installer is what staff run (installs + auto-starts).
           Copy-Item agent/target/release/bundle/nsis/*.exe dist-managed/
+          # Also keep the portable exe, whatever Tauri named it.
+          $exe = Get-ChildItem agent/target/release -Filter *.exe |
+            Where-Object { $_.Name -in @('FinanceSupport.exe','nolt-support.exe') } | Select-Object -First 1
+          if ($exe) { Copy-Item $exe.FullName dist-managed/FinanceSupport.exe }
           Get-ChildItem dist-managed | Format-Table Name, Length
-          "Managed build for server: $env:NOLT_SERVER_URL" | Out-File dist-managed/SERVER_URL.txt
+          "Managed build for server: $env:NOLT_SERVER_URL (product: $env:NOLT_PRODUCT_NAME)" | Out-File dist-managed/SERVER_URL.txt
       - uses: actions/upload-artifact@v4
         if: ${{ env.NOLT_ENROLLMENT_KEY != '' }}
         with:

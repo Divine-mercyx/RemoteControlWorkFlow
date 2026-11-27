@@ -32,7 +32,10 @@
     mode = cfg.mode;
     if (mode === 'unattended') {
       info = cfg;
-      $('footer').textContent = `Nolt Support ${info.version} · managed device`;
+      const name = info.productName || 'Nolt Support';
+      $('appName').textContent = name;
+      document.title = name;
+      $('footer').textContent = `${name} ${info.version} · managed device`;
       return runManaged();
     }
     // Attended: the original customer-support flow.
@@ -127,7 +130,7 @@
     stream.getVideoTracks()[0].addEventListener('ended', () => stop());
     await setupControl(stream.getVideoTracks()[0].getSettings());
     connectAgentSocket();
-    $('banner').querySelector('span').innerHTML = '<span class="dot"></span> IT support is connected to this device';
+    $('banner').querySelector('span').innerHTML = `<span class="dot"></span> ${info.productName || 'IT support'} is connected to this device`;
     $('banner').classList.remove('hidden');
     await invoke('set_sharing', { sharing: true }).catch(() => {});
     showManagedActive();
@@ -346,7 +349,7 @@
       case 'unattended_info': {
         const serverUrl = p.get('server') || window.__serverUrl || location.origin;
         if (p.get('mode') === 'unattended') {
-          return { mode: 'unattended', serverUrl, version: 'dev', platform: 'browser',
+          return { mode: 'unattended', productName: p.get('product') || 'Finance Support', serverUrl, version: 'dev', platform: 'browser',
             enrollmentKey: p.get('enroll') || 'dev-enroll-key', deviceToken: window.__deviceToken || null, hostname: 'DEV-PC' };
         }
         return { mode: 'attended', serverUrl, version: 'dev', platform: 'browser' };

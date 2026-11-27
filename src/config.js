@@ -32,6 +32,11 @@ export function loadConfig(env = process.env) {
     // Path to the built Windows agent (NoltSupport.exe). Served per session as
     // NoltSupport-<token>.exe so the app knows which session to join.
     agentWindowsExe: env.AGENT_WINDOWS_EXE || '',
+    // Path to the managed/unattended installer (Finance Support). Served at
+    // /download/managed/windows for staff to install once; it then self-enrolls.
+    agentWindowsManagedExe: env.AGENT_WINDOWS_MANAGED_EXE || '',
+    // Display name for the managed installer download.
+    managedProductName: env.MANAGED_PRODUCT_NAME || 'FinanceSupport',
     // Shared secret baked into the company installer. A device presents it once
     // to enroll itself for unattended access. Empty = unattended access is off.
     companyEnrollmentKey: env.COMPANY_ENROLLMENT_KEY || '',
