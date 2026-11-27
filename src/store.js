@@ -41,6 +41,8 @@ export class SessionStore {
     const s = {
       id,
       technician,
+      deviceId: null,
+      unattended: false,
       state: STATES.CREATED,
       createdAt: t,
       linkExpiresAt: t + this.linkTtlMs,
@@ -58,6 +60,37 @@ export class SessionStore {
     this.sessions.set(id, s);
     this.byJoinHash.set(s.joinHash, id);
     return { session: s, joinToken };
+  }
+
+  /**
+   * A session to a pre-enrolled device. No join link and no 6-digit code: the
+   * device is already authorized by enrollment, so it starts CLAIMED with an
+   * agent token and is auto-approved when the agent joins (see signaling).
+   */
+  createUnattended({ technician, device }) {
+    const id = crypto.randomUUID();
+    const t = this.now();
+    const s = {
+      id,
+      technician,
+      deviceId: device.id,
+      unattended: true,
+      state: STATES.CLAIMED,
+      createdAt: t,
+      linkExpiresAt: t,
+      expiresAt: t + this.sessionMaxMs,
+      joinHash: null,
+      techToken: token(),
+      agentToken: token(),
+      code: null,
+      agentInfo: { platform: device.platform, agent: 'nolt-agent', version: device.version, deviceName: device.name },
+      claimedAt: t,
+      approvedAt: null,
+      endedAt: null,
+      endReason: null,
+    };
+    this.sessions.set(id, s);
+    return s;
   }
 
   get(id) {
@@ -158,6 +191,8 @@ export function publicSession(s) {
     id: s.id,
     state: s.state,
     code: s.code,
+    unattended: s.unattended,
+    deviceId: s.deviceId,
     agentInfo: s.agentInfo,
     createdAt: s.createdAt,
     linkExpiresAt: s.linkExpiresAt,

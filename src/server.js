@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import express from 'express';
 import { SessionStore } from './store.js';
+import { DeviceStore } from './devices.js';
 import { createSignaling } from './signaling.js';
 import { apiRouter, downloadRouter } from './routes.js';
 import { createAudit } from './audit.js';
@@ -11,9 +12,10 @@ const publicDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 
 
 export function createServer(config, { audit = createAudit(), now } = {}) {
   const store = new SessionStore({ linkTtlMs: config.linkTtlMs, sessionMaxMs: config.sessionMaxMs, now });
+  const deviceStore = new DeviceStore({ now });
   const app = express();
   const httpServer = http.createServer(app);
-  const { io, hub } = createSignaling(httpServer, { config, store, audit });
+  const { io, hub } = createSignaling(httpServer, { config, store, deviceStore, audit });
 
   app.disable('x-powered-by');
   if (config.trustProxy) app.set('trust proxy', 1);
@@ -39,7 +41,7 @@ export function createServer(config, { audit = createAudit(), now } = {}) {
   });
 
   app.get('/healthz', (_req, res) => res.json({ ok: true }));
-  app.use('/api', apiRouter({ config, store, hub, audit }));
+  app.use('/api', apiRouter({ config, store, deviceStore, hub, audit }));
   app.use('/download', downloadRouter({ config, store, audit }));
 
   // The link the user clicks. Opening it does NOT use up the token (link previews in
@@ -64,6 +66,7 @@ export function createServer(config, { audit = createAudit(), now } = {}) {
     httpServer,
     io,
     store,
+    deviceStore,
     listen(port = config.port) {
       return new Promise((resolve) => httpServer.listen(port, () => resolve(httpServer.address())));
     },
